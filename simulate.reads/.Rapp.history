@@ -1,0 +1,57 @@
+source("/Users/liliahedberg/Desktop/release.0.0/simulate.reads/add.binomial.errors.R")
+head(fastq)
+help(seq)
+seq(1, 9, by = 2)
+help(fastq)
+temp<-cbind(as.character(fastq[seq(1,7375197,4),1]), as.character(fastq[seq(2,7375198,4),1]), as.character(fastq[seq(3,7375199,4),1]), as.character(fastq[seq(4,7375200,4),1]))
+size(fastq)
+length(fastq)
+len(fastq)
+nrow(fastq)
+source("/Users/liliahedberg/Desktop/release.0.0/simulate.reads/add.binomial.errors.R")
+nrow(fastq)
+head(fastq)
+temp<-"A"
+temp
+temp2<-"T"
+if(temp==temp2) a=11
+a
+a=0
+a
+if(temp==temp2) a=11
+a
+if(temp=="A") a=11
+a
+help runif
+help ()runif)
+help (runif)
+source("/Users/liliahedberg/Desktop/release.0.0/simulate.reads/add.binomial.errors.R")
+nmut
+source("/Users/liliahedberg/Desktop/release.0.0/simulate.reads/add.binomial.errors.R")
+temp2="a"
+temp
+temp="A"
+if(temp==temp2) print "True"
+if(temp==temp2) aa=1
+aa
+aa=0
+if(temp==temp2) aa=1
+aa=0
+if(temp==temp2) aa=1
+aa
+temp
+temp2
+help(sample)
+help(apply)
+help(rbinom)
+help(rbeta)
+help(runif)
+source("/Users/liliahedberg/Desktop/release.0.0/simulate.reads/add.binomial.errors.R")
+upper("a")
+t="a"
+upper(t)
+toupper(t)
+source("/Users/liliahedberg/Desktop/release.0.0/simulate.reads/add.binomial.errors.R")
+				#print(mut.base)
+#write.table(mut.01.beta, file='/Users/liliahedberg/Desktop/release.0.0/simulate.reads/ouput.example.mut2.fastq', quote=F, row.names=F, col.names=F)
+source("/Users/liliahedberg/Desktop/release.0.0/simulate.reads/add.binomial.errors.R")

@@ -1,0 +1,118 @@
+####SCRIPTS  THESE ARE SOME R FUNCTIONS AND SCRIPTS THAT CAN BE USED TO ANALYSE THE SIMULATED READ DATA.  
+#FUNCTIONS USED ARE AT THE BOTTOM OF THIS FILE AND SHOULD BE READ INTO R FIRST
+#THE READS SHOULD BE MAPPED WITH MAQ, BWA, OR BOWTIE AND THEN THE OUTPUT OF THESE PROGRAMS CAN BE READ WITH THE APPRORIATE FUNCTION
+
+#READ IN SOME MAPPED READS
+
+#THESE LINES READ IN THE MAPPED READS USING SOME FUNCTIONS DEFINED BELOW
+BWA.EXAMPLE.READS <- get.artificial.reads.bwa('/Users/liliahedberg/Documents/U2OS/Allele_specific_expression/SNP_list_U2OS_allelespec.mut1.bam')
+BWA.EXAMPLE.READS2 <- get.artificial.reads.bwa('/Users/liliahedberg/Documents/U2OS/Allele_specific_expression/SNP_list_U2OS_allelespec.mut2.bam')
+
+#THESE LINES MAKE A SUMMARY PLOT OF THE DISTRIBUTION OF FRACTION OF MAPPED READS REFERENCE (AS IN Degner et al 2009)
+PROPORTION.REF <- get.proportion.ref(list(BWA.EXAMPLE.READS, BWA.EXAMPLE.READS2))
+plot.artificial.ref.bias.hist.nobreak(PROPORTION.REF, legend=c("Unfiltered mapped reads", "Filtered mapped reads"))
+
+
+#THIS LINE RETURNS THE NUMBER OF MAPPED REFERENCE AND NONREFERENCE READS FOR EACH SIMULATED SNP
+SNP.COUNTS <- get.mapped.counts.per.SNP(BWA.EXAMPLE.READS2)
+
+##########FUNCTIONS USED IN THE ABOVE ANALYSIS
+get.mapped.counts.per.SNP <- function(data.artificial.list, binsize=7){
+  #TBD: DE: doesnt check if the read mapped at the correct position!!!
+  snp.info <- matrix(unlist(strsplit(as.character(data.artificial[, 1]), split="_")), ncol=7, byrow=T)
+  ref.nonref <- aggregate(paste(snp.info[,1], snp.info[,4]), list(paste(snp.info[,1], snp.info[,4])), length)
+  index <- strsplit(ref.nonref[,1], split=" ")
+  index <- matrix(unlist(index), ncol=2, byrow=T)
+  ref <- cbind(index[index[,2] == "REF",], ref.nonref[index[,2] == "REF",])
+  nonref <- cbind(index[index[,2] == "NONREF",], ref.nonref[index[,2] == "NONREF",])
+  both <- merge(ref, nonref, by=1, all=T)
+  both[is.na(both)] <- 0
+  both <- both[, c(1,4,7)]
+  names(both) <- c("SNP NAME", "Number reference", "Number nonreference")
+  return(both)
+}
+
+get.proportion.ref <- function(data.artificial.list, binsize=7){
+percent.proportion<-sapply(data.artificial.list, function(data.artificial) {
+snp.info<-matrix(unlist(strsplit(as.character(data.artificial[,1]), split="_")), ncol=7, byrow=T)
+ref.nonref <- aggregate(paste(snp.info[,1], snp.info[,4]), list(paste(snp.info[,1], snp.info[,4])), length)
+index <- strsplit(ref.nonref[,1], split=" ")
+index<-matrix(unlist(index), ncol=2, byrow=T)
+ref<-cbind(index[index[,2]=="REF",],ref.nonref[index[,2]=="REF",])
+nonref<-cbind(index[index[,2]=="NONREF",],ref.nonref[index[,2]=="NONREF",])
+both<-merge(ref, nonref, by=1, all=T)
+both[is.na(both)]<-0
+dist.both<-hist(both[,4]/(both[,4]+both[,7]), breaks=c(-0.025, (1:(140/binsize)-0.5)/(140/binsize), 1.025), plot=F)
+return(dist.both$counts/(sum(dist.both$counts))) 5
+})
+return(percent.proportion)
+}
+
+plot.artificial.ref.bias.hist.nobreak <- function(percent.proportion, data.artificial.list=percent.proportion[1,], col="black", breakpoints= c(0.025, 0.25), binsize=7, colorlist=c("black", "blue", "skyblue1"), legend=F){
+plot.new(); plot.window(c(-0.2,1.2),c(-0.2,1.2))
+segments(-0.025,0 ,-0.025,breakpoints[2])
+segments(-0.025,breakpoints[2]+.02 ,-0.025,1)
+segments(-0.025,0 ,1.025,0)
+segments(-0.035, breakpoints[2]-0.01, -0.015, breakpoints[2]+0.01)
+segments(-0.035, breakpoints[2]+0.01, -0.015, breakpoints[2]+0.03)
+#lapply(c((1:5)/5), function(i) segments(-0.005, i , 0.005, i))
+lapply(c((0:4)/4), function(i) segments(i, -0.01, i, 0.01))
+lapply(((0:2)/2)*breakpoints[2], function(i) segments(-0.030, i , -0.02, i))
+lapply(((0:2)/2)*breakpoints[2], function(i) text(-0.03,i,paste(formatC((1/breakpoints[2])*(i*100)*(breakpoints[1]), digits=2, format="f"), "%"), adj=c(1.1, 0.5)))
+#text(-0.02, breakpoints[2]-0.01 ,paste(formatC((100)*(breakpoints[1]), digits=2, format="f"), "%"),  adj=c(1.1, 0.5))
+lapply(c((0.25*0.748719 + 0.251282), (0.5*0.748719 + 0.251282), (0.75*0.748719 + 0.251282), (1*0.748719 + 0.251282)), function(i) text(-0.03,i,paste(formatC(((i- 0.251282)/0.748719)*100,  digits=0, format="f"), "%"), adj=c(1.1, 0.5)))
+lapply(c((0.25*0.748719 + 0.251282), (0.5*0.748719 + 0.251282), (0.75*0.748719 + 0.251282), (1*0.748719 + 0.251282)), function(i) segments(-0.03, i , -0.02, i))
+text((0:4)/4,-0.02, c("0.00", "0.25", "0.50", "0.75", "1.00"), adj=c(0.5, 1.5))
+for(i in 1:length(data.artificial.list)){
+rect(
+xleft=(c((1:(140/binsize)-0.5)/(140/binsize), 1.025))[percent.proportion[,i]<breakpoints[1]] - ((length(data.artificial.list)-i)/length(data.artificial.list))/((140/binsize)/0.8) - (((binsize/140)/0.8)/3),
+ybottom=rep(0, length((c((1:(140/binsize)-0.5)/(140/binsize), 1.025))[percent.proportion[,i]<breakpoints[1]])),
+xright=c((1:(140/binsize)-0.5)/(140/binsize), 1.025)[percent.proportion[,i]<breakpoints[1]] - ((length(data.artificial.list)-i)/length(data.artificial.list))/((140/binsize)/0.8) + (1/length(data.artificial.list))/((140/binsize)/0.8) - (((binsize/140)/0.8)/3),
+ytop = (breakpoints[2])*(1/breakpoints[1])*percent.proportion[,i][percent.proportion[,i]<breakpoints[1]],
+col=colorlist[i],
+lwd=0.5)
+}
+for(i in 1:length(data.artificial.list)) {
+rect(
+xleft=(c((1:(140/binsize)-0.5)/(140/binsize), 1.025))[percent.proportion[,i]>=(breakpoints[1])] - ((length(data.artificial.list)-i)/length(data.artificial.list))/((140/binsize)/0.8) - (((binsize/140)/0.8)/3),
+ybottom=rep(0, length((c((1:(140/binsize)-0.5)/(140/binsize), 1.025))[percent.proportion[,i]>=(breakpoints[1])])),
+xright=(c((1:(140/binsize)-0.5)/(140/binsize), 1.025))[percent.proportion[,i]>=(breakpoints[1])] - ((length(data.artificial.list)-i)/length(data.artificial.list))/((140/binsize)/0.8) + (1/length(data.artificial.list))/((140/binsize)/0.8) - (((binsize/140)/0.8)/3),
+ytop = rep(breakpoints[2], length(c((1:(140/binsize)-0.5)/(140/binsize), 1.025)[percent.proportion[,i]>=(breakpoints[1])])),
+col=colorlist[i],
+lwd=0.5)
+}
+for(i in 1:length(data.artificial.list)) {
+rect(
+xleft=(c((1:(140/binsize)-0.5)/(140/binsize), 1.025))[percent.proportion[,i]>=(breakpoints[1])] - ((length(data.artificial.list)-i)/length(data.artificial.list))/((140/binsize)/0.8) - (((binsize/140)/0.8)/3),
+ybottom=rep(breakpoints[2]+0.02, length((c((1:(140/binsize)-0.5)/(140/binsize), 1.025))[percent.proportion[,i]>=(breakpoints[1])])),
+xright=(c((1:(140/binsize)-0.5)/(140/binsize), 1.025))[percent.proportion[,i]>=(breakpoints[1])] - ((length(data.artificial.list)-i)/length(data.artificial.list))/((140/binsize)/0.8) + (1/length(data.artificial.list))/((140/binsize)/0.8) - (((binsize/140)/0.8)/3),
+ytop = 0.748719*percent.proportion[,i][percent.proportion[,i]>=(breakpoints[1])] + 0.251282,
+col=colorlist[i],
+lwd=0.5)
+}
+mtext("Percentage of SNPs", 2, padj=0.60)
+mtext("Fraction of reference allele among mapped reads", 1, padj=-3.75)
+if(length(legend) > 1){
+legend(0.6, 0.8, legend, fill=colorlist, bty="n")
+}
+}
+
+get.artificial.reads.maq <- function(filename, cuttoff=0){
+  data<-read.table(filename, comment.char = "", sep="\t", quote="")
+  data.unique <- unique(data[data[,7] > cuttoff , c(1:6)])
+  data.unique
+}
+
+
+get.artificial.reads.bowtie <- function(filename) {
+  data <- read.table(filename, fill=T, comment.char = "", sep="\t", quote="")
+  data.unique <- unique(data)
+  data.unique
+}
+
+get.artificial.reads.bwa <- function(filename) {
+  data <- read.table(filename, fill=T, comment.char = "", sep="\t", quote="")
+  data.unique <- unique(data)
+  data.unique
+}
+

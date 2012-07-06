@@ -1,0 +1,12 @@
+The script in this folder takes as input a file specifying SNP locations in a chromosome and outputs a modified version of this chromosome wherein all the specified SNP locations are changed to a base that does not segregate in the population (i.e. neither of the bases given in the SNP file).  This effectively masks the SNP locations without using the ambiguity code N (many of the currently available read mapping programs do not deal with N's very well).  The script can be run with:
+
+perl make.snp.genomes.perl snp.file.example.txt /data/downloaded/HumanGenome/hg18/chr1.fa.gz SNP.MASKED.chr1
+
+For the human genome, this script required about 4 GB of memory to run, so use a computer that has this.
+
+The command line arguments are all required and are 
+1) A path to the file that gives the SNP locations in the same format as snp.file.example.txt
+2) A path to the chromosome you want to SNP-mask a gzipped fasta file (first line should be >name, subsequent lines should be text without spaces, in gzip format). 
+3) A name for the new chromosome 
+
+The output is in fasta format.

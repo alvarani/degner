@@ -1,0 +1,29 @@
+The perl script in this folder simulates all short reads of a specified length surrounding some specified SNP variants.  It can be run on the example file using
+
+perl get.overlaps.v2.perl snp.file.example.txt /data/downloaded/HumanGenome/hg18/ 20 BBBBBBBBBBBBBBBBBBBB > ouput.example.fastq
+
+For the human genome, this script required about 4 GB of memory to run, so use a computer that has this.
+
+The command line arguments are all required and are 
+1) A path to the file that gives the SNP locations in the same format as snp.file.example.txt
+2) A path to the folder containing gzipped files of the genome, separated by chromosome and named as: chr1.fa.gz, chr2.fa.gz, chr3.fa.gz ...
+3) The length of the reads you want to simulate
+4) A string of Ascii characters representing the base-quality scores you want to assign to each read.  This needs to be the same length as the reads you are simulating. We found that B was the modal base quality score in our dataset and may be a good default.
+
+
+The output is then in fastq format and you can map these reads using standard read mapping programs.
+
+There is also file containing R code which can be modified to use for adding random errors to these simulated reads 
+
+Once the simulated reads have been made, they can be mapped with any mapping program.
+
+e.g. with BWA
+
+/home/jdegner/bin/15_april_2009_mapping_programs/bwa-0.4.6/bwa aln /data/share/HumanGenome/SNP_MASKED_NOT_Ns_allhg18_norandom.fasta  ouput.example.fastq  > ouput.example.sai
+/home/jdegner/bin/15_april_2009_mapping_programs/bwa-0.4.6/bwa samse /data/share/HumanGenome/SNP_MASKED_NOT_Ns_allhg18_norandom.fasta ouput.example.sai ouput.example.fastq  > ouput.example.sam
+
+Filter these with your mapping criteria (e.g. score > 0)
+
+cat ouput.example.sam | awk  '$5 > 0 {print}' > ouput.example.filtered.reads.txt
+
+ 
